@@ -1,248 +1,54 @@
-@font-face {
-  font-family: "bby";
-  src: url("HelveticaNowDisplay-Regular_5Mzhp8KlA8_CAVTbnsPOM.woff2");
-}
-@font-face {
-  font-family: "bhutkii";
-  src: url("NeueMachina-Regular_DQCmjH1st.ttf");
-}
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-html,
-body {
-  height: 100%;
+html, body {
   width: 100%;
-  background-image: url("https://images.unsplash.com/photo-1638659782656-05c8aa4fb88f?auto=format&fit=crop&q=60&w=500");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+  height: 100%;
 }
 
 main {
   width: 100%;
-  height: 100%;
 }
-main nav {
+main .hero {
+  width: 100%;
+  height: 100vh;
+  background-color: #111;
+  overflow: hidden;
+  padding: 10vw;
+}
+main .hero .card {
+  width: 300px;
+  height: 300px;
+  background-image: url(https://images.unsplash.com/photo-1760570317577-fa68f4738373?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8&auto=format&fit=crop&q=60&w=500);
+  background-position: center;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+}
+main .hero .card .bottom {
+  position: absolute;
+  width: 100%;
+  height: 45%;
+  background-color: rgba(133, 130, 130, 0.308);
+  bottom: -45%;
+  transition: all ease-in-out 0.5s;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 1vw 2vw;
-  color: white;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-main nav h1 {
-  font-size: 2rem;
-}
-main nav h1 span {
-  color: rgb(255, 60, 0);
-}
-main nav .nav-two {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-main nav .nav-two .bottom {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(180deg, #555, black);
-  border-radius: 50%;
-  position: relative;
-  box-shadow: 4px 3px 10px black;
-  border: 0.5px solid white;
-}
-main nav .nav-two .dot-one {
-  position: absolute;
-  right: 35px;
-  top: 14px;
-  width: 15px;
-  height: 15px;
-  background-color: white;
-  border-radius: 50%;
-  transform: scale(0.6);
-  box-shadow: 10px 2px 10px black;
-}
-main nav .nav-two .dot-two {
-  position: absolute;
-  right: 10px;
-  top: 14px;
-  width: 15px;
-  height: 15px;
-  background-color: white;
-  border-radius: 50%;
-  transform: scale(0.6);
-  box-shadow: 10px 2px 10px black;
-}
-main nav .nav-two .dot-three {
-  position: absolute;
-  right: 10px;
-  top: 37px;
-  width: 15px;
-  height: 15px;
-  background-color: white;
-  border-radius: 50%;
-  transform: scale(0.6);
-  box-shadow: 10px 2px 10px black;
-}
-main nav .nav-two .dot-four {
-  position: absolute;
-  right: 35px;
-  top: 37px;
-  width: 15px;
-  height: 15px;
-  background-color: white;
-  border-radius: 50%;
-  transform: scale(0.6);
-  box-shadow: 10px 2px 10px black;
-}
-main nav .nav-three button {
-  padding: 0.7vw 2vw;
-  border-radius: 7px;
-  border: none;
-  background: linear-gradient(100deg, #333, #444, #646464, #e0dada);
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-main nav .nav-three button:hover {
-  background: linear-gradient(100deg, #e0dada, #646464, #333);
-}
-main #Home {
-  width: 100%;
-  height: 80%;
-  display: flex;
   color: white;
 }
-main #Home .left {
-  width: 40%;
-  padding: 2vw;
+main .hero .card .bottom i {
+  padding-right: 2vw;
+  padding-top: 1vw;
+  font-size: 30px;
+  transition: all ease-in 0.2s;
 }
-main #Home .left .text-area {
-  margin-top: 50px;
+main .hero .card .bottom i:hover {
+  color: red;
 }
-main #Home .left .text-area h4 {
-  display: flex;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 500;
-}
-main #Home .left .text-area h4 .dot {
-  width: 15px;
-  height: 15px;
-  background-color: orangered;
-  display: inline-block;
-  border-radius: 50%;
-  box-shadow: 0 0 10px orangered;
-  margin-right: 10px;
-}
-main #Home .left .text-area h2 {
-  font-size: 100px;
-  margin-top: 30px;
-  font-family: "bhutkii";
-  font-weight: 600;
-}
-main #Home .left .text-area .line {
-  height: 2px;
-  width: 80px;
-  background-color: white;
-  margin: 10px 0;
-}
-main #Home .left .text-area h3 {
-  margin-left: 100px;
-  margin-top: -12px;
-}
-main #Home .left .text-area .sec-text-area h1 {
-  font-size: 70px;
-  margin: 0;
-}
-main #Home .left .text-area .sec-text-area p {
-  margin-top: 30px;
-  width: 720px;
-  font-size: 19px;
-  font-family: "bby";
-  font-weight: 500;
-  line-height: 1.5;
-}
-main #Home .right {
-  width: 60%;
-  position: relative;
-}
-main #Home .right .light {
-  position: absolute;
-  right: 30px;
-  top: 30px;
-  width: 120px;
-  height: 120px;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.1));
-  border-radius: 50%;
-  box-shadow: 0 0 120px 40px rgba(255, 255, 255, 0.6);
-  filter: blur(40px);
-  transition: all 1s ease;
-  animation: pulseGlow 3s ease-in-out infinite alternate;
-}
-@keyframes pulseGlow {
-  0% {
-    transform: scale(0.5);
-    opacity: 0.8;
-    box-shadow: 0 0 100px 30px rgba(255, 255, 255, 0.5);
-  }
-  100% {
-    transform: scale(0.6);
-    opacity: 1;
-    box-shadow: 0 0 140px 60px rgba(255, 255, 255, 0.9);
-  }
-}
-main #Home .right .side-icons {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 60px;
-  height: 150px;
-  background-color: rgba(255, 255, 255, 0.11);
-  right: 0;
-  top: 100px;
-  gap: 20px;
-  border-top-left-radius: 40px;
-  border-bottom-left-radius: 40px;
-  transition: all 0.3s ease;
-}
-main #Home .right .side-icons i {
-  color: white;
-  font-size: 20px;
-  transition: all 0.5s ease;
-}
-main #Home .right .side-icons i:hover {
-  color: rgb(0, 255, 128);
-}
-main #Home .right .side-icons:hover {
-  height: 190px;
-  background: linear-gradient(to left, #29383f, #2c5364);
-  border-top-right-radius: 30px;
-  border-bottom-right-radius: 30px;
-}
-main #Home .right .money {
-  position: absolute;
-  right: 200px;
-  bottom: 40px;
-}
-main #Home .right .money h1 {
-  font-size: 2.5rem;
-}
-main #Home .right .money h1 .doller {
-  font-size: 20px;
-}
-main #Home .right .money h1 .zero {
-  font-size: 23px;
-}
-main #Home .right .money h4 {
-  font-size: 20px;
-  font-family: "bby";
-  font-weight: 100;
+main .hero .card:hover .bottom {
+  bottom: 0;
 }/*# sourceMappingURL=style.css.map */
