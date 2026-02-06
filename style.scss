@@ -2,62 +2,123 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-html,body{
+html,body {
   width: 100%;
   height: 100%;
 }
 
+html {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: white;
+}
+
+body {
+  background-color: #111;
+}
+
+@mixin display($gap:0rem) {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+}
+
+section { 
+  max-width: 2000px;
+}
+
 main {
   width: 100%;
+  @include display(0rem);
+  align-items: center;
 
-  .hero {
-  width: 100%;
-  height: 100vh;
-  // display: flex;
-  // justify-content: center;
-  // align-items: center;
-  background-color: #111;
-  overflow: hidden;
-  padding: 10vw;
-
-  .card {
-  width: 300px;
-  height: 300px;
-  background-image: url(https://images.unsplash.com/photo-1760570317577-fa68f4738373?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8&auto=format&fit=crop&q=60&w=500);
-  background-position: center;
-  background-size: cover;
-  position: relative;
-  overflow: hidden;
-  .bottom {
-    position: absolute;
+ section {
     width: 100%;
-    height: 45%;
-    background-color: rgba(133, 130, 130, 0.308);
-    bottom: -45%;
-    transition: all ease-in-out 0.5s;
-    display: flex;
-      justify-content: space-between;
-      color: white;
+    @include display(1rem);
+    padding: 1rem;
 
-      i {
-        padding-right: 2vw;
-        padding-top: 1vw;
-        font-size: 30px;
-        transition: all ease-in 0.2s;
+    .top {
+      width: 100%;
+
+      img {
+        width: 100%;
+        border-radius: 10px;
+      }
+    }
+
+
+    .bottom {
+      background-color: #222;
+      @include display(2.2em);
+      padding: 1.5rem;
+      border-radius: 10px;
+      
+
+      p {
+        font-size: 1.1rem;
       }
 
-      i:hover {
-        color: red;
+      .text {
+        @include display(0.7rem);
+
+        h1 {
+          margin-top: 10px;
+          font-size: 3rem;
+          font-weight: 500;
+          line-height: 1.2;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        p {
+          font-weight: 300;
+          opacity: 0.5;
+          font-size: 1.5rem;
+        }
+
+        .arrow {
+          display: flex;
+          gap: 1rem;
+          padding-top: 1.2rem;
+
+          .icons {
+            width: 2.5rem;
+            aspect-ratio: 1/1;
+            background-color: rgba(196, 193, 193, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #666;
+            font-size: 1.5rem;
+          }
+          h1 {
+            font-size: 1rem;
+            text-transform:uppercase;
+            letter-spacing: 0.5rem;
+          }
+        }
+
       }
+    }
   }
-
+  
 }
 
-.card:hover .bottom{
-  bottom: 0;
-}
-}
+@media (min-width:900px){
+  main {
+
+    section {
+      display: flex;
+      flex-direction: row;
+      .top ,
+       .bottom {
+        width: 50%;
+        
+      }
+    }
+    .bottom {
+      justify-content: space-between;
+    }
+  }
 }

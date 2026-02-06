@@ -1,54 +1,9 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
-}
-
-main {
-  width: 100%;
-}
-main .hero {
-  width: 100%;
-  height: 100vh;
-  background-color: #111;
-  overflow: hidden;
-  padding: 10vw;
-}
-main .hero .card {
-  width: 300px;
-  height: 300px;
-  background-image: url(https://images.unsplash.com/photo-1760570317577-fa68f4738373?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8&auto=format&fit=crop&q=60&w=500);
-  background-position: center;
-  background-size: cover;
-  position: relative;
-  overflow: hidden;
-}
-main .hero .card .bottom {
-  position: absolute;
-  width: 100%;
-  height: 45%;
-  background-color: rgba(133, 130, 130, 0.308);
-  bottom: -45%;
-  transition: all ease-in-out 0.5s;
-  display: flex;
-  justify-content: space-between;
-  color: white;
-}
-main .hero .card .bottom i {
-  padding-right: 2vw;
-  padding-top: 1vw;
-  font-size: 30px;
-  transition: all ease-in 0.2s;
-}
-main .hero .card .bottom i:hover {
-  color: red;
-}
-main .hero .card:hover .bottom {
-  bottom: 0;
-}/*# sourceMappingURL=style.css.map */
+/* const firebaseConfig = {
+  apiKey: "AIzaSyBkQMK4LJB7ihMID78Y1_30lTznWipo5pM",
+  authDomain: "tournament-782eb.firebaseapp.com",
+  projectId: "tournament-782eb",
+  storageBucket: "tournament-782eb.firebasestorage.app",
+  messagingSenderId: "772603896264",
+  appId: "1:772603896264:web:f400e841526c2ba961a0fd",
+  measurementId: "G-2BKN0M5ZHX"
+}; */

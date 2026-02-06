@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF Arena - Player Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 0px; }
+        .tab-content { display: none; }
+        .active-tab { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .cancel-reason { animation: shake 0.5s ease-in-out; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        
+        /* Profile Drawer Style */
+        #profile-drawer { transition: transform 0.3s ease-in-out; transform: translateY(100%); }
+        #profile-drawer.active { transform: translateY(0); }
+
+        /* Policy Modal Glassmorphism */
+        .glass-modal { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-[#020617] text-white pb-24">
+
+    <div id="auth-screen" class="fixed inset-0 bg-slate-950 z-[2000] flex items-center justify-center p-6 text-center">
+        <div>
+            <div class="w-20 h-20 bg-blue-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-blue-500/50">
+                <i class="fa fa-fire-alt text-4xl"></i>
+            </div>
+            <h2 class="text-3xl font-black italic mb-10 uppercase text-white">FF Arena</h2>
+            <button onclick="googleLogin()" class="bg-white text-black px-10 py-4 rounded-2xl font-bold flex items-center gap-3 mx-auto shadow-xl active:scale-95 transition">
+                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="w-6"> Login with Google
+            </button>
+        </div>
+    </div>
+
+    <div id="app-screen" class="hidden">
+        <header class="p-6 flex justify-between items-center bg-slate-900/80 backdrop-blur-lg sticky top-0 z-50 border-b border-white/5">
+            <div>
+                <h1 class="text-xl font-black text-blue-500 italic uppercase">FF Arena</h1>
+                <p class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Wallet: <span id="top-pts" class="text-green-500">0</span> Pts</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <img id="u-img" onclick="toggleDrawer(true)" class="w-10 h-10 rounded-full border-2 border-blue-600 cursor-pointer object-cover">
+            </div>
+        </header>
+
+        <div id="drawer-overlay" onclick="toggleDrawer(false)" class="fixed inset-0 bg-black/60 z-[1500] hidden backdrop-blur-sm"></div>
+        
+        <div id="profile-drawer" class="fixed bottom-0 left-0 right-0 bg-slate-900 z-[1600] rounded-t-[2.5rem] p-8 border-t border-white/10 shadow-2xl">
+            <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-8"></div>
+            
+            <div class="flex items-center gap-4 mb-8">
+                <img id="u-img-large" class="w-16 h-16 rounded-2xl border-2 border-blue-500">
+                <div>
+                    <h3 id="u-name" class="font-black italic uppercase text-lg">Player Name</h3>
+                    <p id="u-email" class="text-xs text-gray-500">email@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="openPolicy('rules')" class="w-full p-4 bg-white/5 rounded-2xl flex items-center gap-4 font-bold text-sm hover:bg-white/10">
+                    <i class="fa fa-scroll text-blue-500"></i> Rules & Regulations
+                </button>
+                <button onclick="openPolicy('privacy')" class="w-full p-4 bg-white/5 rounded-2xl flex items-center gap-4 font-bold text-sm hover:bg-white/10">
+                    <i class="fa fa-shield-halved text-green-500"></i> Privacy Policy
+                </button>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="https://wa.me/919804868878" class="p-4 bg-green-600/10 rounded-2xl flex flex-col items-center gap-2 border border-green-500/20">
+                        <i class="fab fa-whatsapp text-green-500 text-xl"></i>
+                        <span class="text-[10px] font-black uppercase">Support</span>
+                    </a>
+                    <a href="mailto:r2499178@gmail.com" class="p-4 bg-blue-600/10 rounded-2xl flex flex-col items-center gap-2 border border-blue-500/20">
+                        <i class="fa fa-envelope text-blue-500 text-xl"></i>
+                        <span class="text-[10px] font-black uppercase">Email</span>
+                    </a>
+                </div>
+
+                <button onclick="logout()" class="w-full p-4 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-xs mt-4 border border-red-500/20">
+                    <i class="fa fa-power-off"></i> Logout Account
+                </button>
+            </div>
+        </div>
+
+        <div id="policy-modal" class="fixed inset-0 glass-modal hidden z-[3000] flex items-center justify-center p-6">
+            <div class="bg-slate-900 border border-white/10 w-full max-w-md rounded-[2.5rem] p-8 max-h-[80vh] overflow-y-auto relative">
+                <button onclick="closePolicy()" class="absolute top-6 right-6 text-gray-500 hover:text-white"><i class="fa fa-times text-xl"></i></button>
+                <div id="policy-icon" class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-3xl"></div>
+                <h2 id="policy-title" class="text-2xl font-black italic uppercase mb-4"></h2>
+                <div id="policy-content" class="text-sm text-gray-400 space-y-4 leading-relaxed font-medium"></div>
+                <button onclick="closePolicy()" class="w-full mt-8 py-4 bg-white/5 rounded-2xl font-bold uppercase text-xs tracking-widest border border-white/10">I Understand</button>
+            </div>
+        </div>
+
+        <div id="alert-box" class="hidden p-4 mx-4 mt-4 bg-red-500/10 border border-red-500/30 rounded-2xl cancel-reason">
+            <div class="flex items-start gap-3">
+                <i class="fa fa-circle-exclamation text-red-500 mt-1"></i>
+                <div>
+                    <p class="text-[10px] font-black uppercase text-red-500">Notice</p>
+                    <p id="alert-msg" class="text-xs text-gray-300 font-bold"></p>
+                </div>
+                <button onclick="document.getElementById('alert-box').classList.add('hidden')" class="ml-auto text-gray-500"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+
+        <div id="ann-bar" class="hidden mx-4 mt-4 p-4 bg-blue-600/10 border border-blue-500/30 rounded-2xl flex items-center gap-4 shadow-lg">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center animate-pulse text-white"><i class="fa fa-bullhorn"></i></div>
+            <div class="flex-1 overflow-hidden">
+                <p class="text-[10px] text-blue-400 font-black uppercase mb-1">Notice Board</p>
+                <marquee id="ann-text" class="text-sm font-bold text-white"></marquee>
+            </div>
+        </div>
+
+        <main class="p-4">
+            <div id="tab-matches" class="tab-content active-tab">
+                <div class="bg-gradient-to-br from-blue-700 to-indigo-950 p-6 rounded-[2.5rem] shadow-2xl mb-8 relative overflow-hidden">
+                    <div class="relative z-10 text-white">
+                        <p class="text-xs text-blue-200 font-bold mb-1 uppercase">Current Balance</p>
+                        <h2 class="text-4xl font-black mb-6 italic"><span id="main-pts">0</span> <span class="text-sm font-normal not-italic opacity-70">Pts</span></h2>
+                        <div class="flex gap-2">
+                            <button onclick="document.getElementById('deposit-modal').classList.remove('hidden')" class="bg-white text-blue-700 px-6 py-3 rounded-2xl font-bold text-xs uppercase shadow-xl">Add Pts</button>
+                            <button onclick="document.getElementById('withdraw-modal').classList.remove('hidden')" class="bg-blue-900/40 text-white border border-white/20 px-6 py-3 rounded-2xl font-bold text-xs uppercase shadow-xl">Withdraw</button>
+                        </div>
+                    </div>
+                    <i class="fa fa-wallet absolute -bottom-4 -right-4 text-9xl text-white/10 rotate-12"></i>
+                </div>
+                <h2 class="text-lg font-black italic mb-6 border-l-4 border-blue-500 pl-3 uppercase text-white">Live Tournaments</h2>
+                <div id="tour-list" class="space-y-6"></div>
+            </div>
+
+            <div id="tab-results" class="tab-content">
+                <h2 class="text-lg font-black italic mb-6 border-l-4 border-green-500 pl-3 uppercase text-white">Recent Results</h2>
+                <div id="results-list" class="space-y-6"></div>
+            </div>
+
+            <div id="tab-history" class="tab-content">
+                <h2 class="text-lg font-black italic mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-white">Transactions</h2>
+                <div id="history-list" class="space-y-3"></div>
+            </div>
+        </main>
+
+        <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-xl border-t border-white/5 p-4 flex justify-around items-center z-[1000]">
+            <button onclick="switchTab('matches')" id="nav-matches" class="text-blue-500 flex flex-col items-center gap-1">
+                <i class="fa fa-gamepad text-xl"></i><span class="text-[8px] font-bold uppercase">Matches</span>
+            </button>
+            <button onclick="switchTab('history')" id="nav-history" class="text-gray-500 flex flex-col items-center gap-1">
+                <i class="fa fa-history text-xl"></i><span class="text-[8px] font-bold uppercase">History</span>
+            </button>
+            <button onclick="switchTab('results')" id="nav-results" class="text-gray-500 flex flex-col items-center gap-1">
+                <i class="fa fa-trophy text-xl"></i><span class="text-[8px] font-bold uppercase">Results</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="deposit-modal" class="fixed inset-0 bg-black/98 hidden z-[1100] flex items-center justify-center p-6 overflow-y-auto text-center">
+        <div class="bg-slate-900 p-8 rounded-[2.5rem] w-full max-w-sm border border-slate-800">
+            <h3 class="text-xl font-bold mb-2 text-blue-500 uppercase italic">Deposit Points</h3>
+            <div class="bg-white p-3 rounded-2xl inline-block mb-6"><img id="adm-qr-img" src="" class="w-44 h-44 object-contain"></div>
+            <input id="dep-amt" type="number" placeholder="Enter Amount" class="w-full p-4 bg-black rounded-2xl mb-4 border border-slate-800 outline-none text-white">
+            <input id="dep-file" type="file" accept="image/*" class="w-full p-3 bg-black rounded-2xl mb-6 border border-slate-800 text-sm text-gray-400">
+            <button onclick="submitDeposit()" class="w-full py-4 bg-green-600 rounded-2xl font-bold uppercase">Submit Request</button>
+            <button onclick="document.getElementById('deposit-modal').classList.add('hidden')" class="mt-4 text-gray-500 text-sm font-bold uppercase">Close</button>
+        </div>
+    </div>
+
+    <div id="withdraw-modal" class="fixed inset-0 bg-black/98 hidden z-[1200] flex items-center justify-center p-6 overflow-y-auto text-center">
+        <div class="bg-slate-900 p-8 rounded-[2.5rem] w-full max-w-sm border border-slate-800">
+            <h3 class="text-xl font-bold mb-2 text-blue-500 italic uppercase">Withdraw Points</h3>
+            <input id="wit-amt" type="number" placeholder="Withdraw Amount" class="w-full p-4 bg-black rounded-2xl mb-4 border border-slate-800 outline-none text-white">
+            <input id="wit-file" type="file" accept="image/*" class="w-full p-3 bg-black rounded-2xl mb-6 border border-slate-800 text-sm text-gray-400">
+            <button onclick="submitWithdraw()" class="w-full py-4 bg-blue-600 rounded-2xl font-bold uppercase">Submit Withdrawal</button>
+            <button onclick="document.getElementById('withdraw-modal').classList.add('hidden')" class="mt-4 text-gray-500 text-sm font-bold">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="reg-modal" class="fixed inset-0 bg-black/95 hidden z-[1100] flex items-center justify-center p-6 text-center">
+        <div class="bg-slate-900 p-8 rounded-[2.5rem] w-full max-w-sm border border-slate-800">
+            <h3 class="text-2xl font-black mb-2 italic uppercase">Join Match</h3>
+            <p id="reg-fee-info" class="text-xs text-blue-400 font-bold mb-8"></p>
+            <input id="p-name" placeholder="Free Fire Name" class="w-full p-4 bg-black rounded-2xl mb-4 border border-slate-800 outline-none text-white text-center font-bold">
+            <input id="p-uid" placeholder="FF UID" class="w-full p-4 bg-black rounded-2xl mb-6 border border-slate-800 outline-none text-white text-center font-bold">
+            <button onclick="confirmJoin()" class="w-full py-4 bg-blue-600 rounded-2xl font-bold text-lg uppercase">Pay & Register</button>
+            <button onclick="document.getElementById('reg-modal').classList.add('hidden')" class="w-full mt-4 text-gray-500 font-bold uppercase text-xs">Close</button>
+        </div>
+    </div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkQMK4LJB7ihMID78Y1_30lTznWipo5pM",
+        authDomain: "tournament-782eb.firebaseapp.com",
+        projectId: "tournament-782eb",
+        storageBucket: "tournament-782eb.firebasestorage.app",
+        messagingSenderId: "772603896264",
+        appId: "1:772603896264:web:f400e841526c2ba961a0fd",
+        databaseURL: "https://tournament-782eb-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    let userPoints = 0;
+    let activeMatchId = null;
+    let activeMatchFee = 0;
+
+    function googleLogin() { 
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(err => alert("Login Error: " + err.message));
+    }
+
+    function logout() { 
+        auth.signOut().then(() => location.reload()); 
+    }
+
+    // MAIN AUTH LISTENER - CRITICAL FIX FOR "auth != null" RULES
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            console.log("User logged in, loading data...");
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('u-img').src = user.photoURL;
+            document.getElementById('u-img-large').src = user.photoURL;
+            document.getElementById('u-name').innerText = user.displayName;
+            document.getElementById('u-email').innerText = user.email;
+            
+            // Database calls ONLY triggered after successful authentication
+            syncUserData(); 
+            loadMatches(); 
+            loadAdminQR(); 
+            loadAnnouncements(); 
+            loadResults(); 
+            checkRejections(); 
+            loadHistory();
+        } else {
+            console.log("No user session found.");
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('app-screen').classList.add('hidden');
+        }
+    });
+
+    function toggleDrawer(show) {
+        const drawer = document.getElementById('profile-drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        if(show) {
+            overlay.classList.remove('hidden');
+            setTimeout(() => drawer.classList.add('active'), 10);
+        } else {
+            drawer.classList.remove('active');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+    }
+
+    function openPolicy(type) {
+        const modal = document.getElementById('policy-modal');
+        const title = document.getElementById('policy-title');
+        const content = document.getElementById('policy-content');
+        const icon = document.getElementById('policy-icon');
+
+        if(type === 'rules') {
+            title.innerText = "Tournament Rules";
+            icon.innerHTML = '<i class="fa fa-scroll text-blue-500"></i>';
+            icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-3xl bg-blue-500/10";
+            content.innerHTML = `
+                <p>• <b>NO HACKING:</b> Use of any third-party tools or scripts is strictly prohibited. Instant Ban.</p>
+                <p>• <b>TEAM-UP:</b> Teaming up in Solo matches will lead to disqualification without refund.</p>
+                <p>• <b>ROOM DETAILS:</b> Room ID & Password will be shared 15 mins before match start in the match card.</p>
+                <p>• <b>BE ON TIME:</b> If you fail to join the room before start, management is not responsible.</p>
+                <p>• <b>EMULATORS:</b> Only Mobile players are allowed. No PC players unless specified.</p>
+            `;
+        } else {
+            title.innerText = "Privacy Policy";
+            icon.innerHTML = '<i class="fa fa-shield-halved text-green-500"></i>';
+            icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-3xl bg-green-500/10";
+            content.innerHTML = `
+                <p>• <b>DATA COLLECTION:</b> We only store your Google name, email, and Free Fire UID for tournament management.</p>
+                <p>• <b>PAYMENTS:</b> Screenshots uploaded for deposit are used solely for manual verification by admins.</p>
+                <p>• <b>SECURITY:</b> Your account data is never shared with third parties or advertisers.</p>
+                <p>• <b>CONTACT:</b> For any issues related to your data, contact us via WhatsApp support.</p>
+            `;
+        }
+        modal.classList.remove('hidden');
+        toggleDrawer(false);
+    }
+
+    function closePolicy() {
+        document.getElementById('policy-modal').classList.add('hidden');
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab'));
+        document.getElementById('tab-' + tab).classList.add('active-tab');
+        document.querySelectorAll('nav button').forEach(b => b.classList.replace('text-blue-500', 'text-gray-500'));
+        document.getElementById('nav-' + (tab === 'history' ? 'history' : tab)).classList.replace('text-gray-500', 'text-blue-500');
+    }
+
+    function checkRejections() {
+        if(!auth.currentUser) return;
+        const uid = auth.currentUser.uid;
+        db.ref('deposit_requests').orderByChild('uid').equalTo(uid).limitToLast(1).on('value', snap => {
+            snap.forEach(child => {
+                const req = child.val();
+                if(req.status === 'cancelled' && req.reason) showAlert(`Deposit declined: ${req.reason}`);
+            });
+        });
+    }
+
+    function showAlert(msg) {
+        document.getElementById('alert-box').classList.remove('hidden');
+        document.getElementById('alert-msg').innerText = msg;
+    }
+
+    function syncUserData() {
+        if(!auth.currentUser) return;
+        db.ref('users/' + auth.currentUser.uid).on('value', snap => {
+            userPoints = (snap.val() && snap.val().points) || 0;
+            document.getElementById('top-pts').innerText = userPoints;
+            document.getElementById('main-pts').innerText = userPoints;
+        });
+    }
+
+    function loadMatches() {
+        db.ref('tournaments').on('value', snap => {
+            const list = document.getElementById('tour-list');
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const t = child.val();
+                let myEntry = null;
+                if(t.players && auth.currentUser) {
+                    Object.values(t.players).forEach(p => { 
+                        if(p.email === auth.currentUser.email) myEntry = p; 
+                    });
+                }
+
+                let btnHtml = myEntry ? 
+                    `<button class="w-full py-4 bg-green-600/20 text-green-500 border border-green-500/30 rounded-2xl font-bold uppercase text-[10px]" disabled><i class="fa fa-check-circle mr-2"></i>Joined Successfully</button>` :
+                    `<button onclick="openJoinModal('${child.key}', ${t.fee})" class="w-full py-4 bg-blue-600 rounded-2xl font-black text-xs uppercase shadow-xl shadow-blue-900/40">Join Match</button>`;
+
+                if(myEntry && t.status === 'live') {
+                    btnHtml = `<div class="bg-blue-600 p-4 rounded-2xl text-center shadow-lg animate-pulse text-white border border-white/20">
+                        <p class="text-[10px] font-bold opacity-80 uppercase mb-1">Room ID & Pass</p>
+                        <p class="text-sm font-black italic tracking-widest">ID: ${t.roomId || 'WAIT'} | PASS: ${t.roomPass || 'WAIT'}</p>
+                    </div>`;
+                }
+
+                let matchTime = "TBA";
+                if(t.time) {
+                    const d = new Date(t.time);
+                    matchTime = d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+                }
+
+                list.innerHTML += `
+                <div class="bg-slate-900/40 rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl relative">
+                    <div class="relative h-40">
+                        <img src="${t.img}" class="w-full h-full object-cover opacity-60">
+                        <div class="absolute top-4 left-4 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                            <i class="fa fa-calendar-alt text-blue-400 text-[10px]"></i>
+                            <p class="text-[10px] font-black text-white uppercase">${matchTime}</p>
+                        </div>
+                        <div class="absolute top-4 right-4 bg-yellow-500 px-4 py-1.5 rounded-xl shadow-lg border-b-2 border-yellow-700">
+                            <p class="text-[8px] text-yellow-900 font-black uppercase leading-none">Entry Fee</p>
+                            <p class="text-xs font-black text-black">₹${t.fee || 0}</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex gap-2 mb-2">
+                            <span class="bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[8px] px-2 py-1 rounded-md font-bold uppercase">${t.type || 'Solo'}</span>
+                            <span class="bg-slate-700/40 text-gray-300 border border-white/10 text-[8px] px-2 py-1 rounded-md font-bold uppercase">${t.map || 'Bermuda'}</span>
+                        </div>
+                        <h3 class="text-xl font-black italic uppercase mb-4 text-white">${t.name}</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-blue-600/10 p-3 rounded-2xl text-center border border-blue-500/20">
+                                <p class="text-[8px] text-blue-400 font-bold uppercase">Prize Pool</p>
+                                <p class="text-lg font-black text-white">₹${t.prize}</p>
+                            </div>
+                            <div class="bg-green-600/10 p-3 rounded-2xl text-center border border-green-500/20">
+                                <p class="text-[8px] text-green-400 font-bold uppercase">Per Kill</p>
+                                <p class="text-lg font-black text-white">₹${t.perKill || 0}</p>
+                            </div>
+                        </div>
+                        ${btnHtml}
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function loadResults() {
+        db.ref('results').on('value', snap => {
+            const list = document.getElementById('results-list');
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const r = child.val();
+                list.innerHTML += `
+                <div class="bg-slate-900 rounded-[2rem] border border-white/5 overflow-hidden shadow-xl">
+                    <img src="${r.img || r.screenshot}" class="w-full h-40 object-cover opacity-50">
+                    <div class="p-5 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-yellow-500 font-bold uppercase tracking-widest">Tournament Winner</p>
+                            <h4 class="text-lg font-black text-white italic uppercase">${r.winner}</h4>
+                            <p class="text-[9px] text-gray-400">Match: ${r.matchName || 'Completed'}</p>
+                        </div>
+                        <i class="fa fa-trophy text-3xl text-yellow-500"></i>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function loadHistory() {
+        if(!auth.currentUser) return;
+        const uid = auth.currentUser.uid;
+        const list = document.getElementById('history-list');
+        db.ref('deposit_requests').orderByChild('uid').equalTo(uid).on('value', snap => {
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const d = child.val();
+                const color = d.status === 'approved' ? 'text-green-500' : (d.status === 'cancelled' ? 'text-red-500' : 'text-yellow-500');
+                list.innerHTML += `
+                <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase text-blue-400">Deposit</p>
+                        <p class="text-sm font-black">₹${d.amount}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold uppercase ${color}">${d.status}</p>
+                        <p class="text-[8px] text-gray-500">${new Date(d.time).toLocaleDateString()}</p>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function loadAnnouncements() {
+        db.ref('announcements').on('value', snap => {
+            if(snap.exists()) {
+                document.getElementById('ann-text').innerText = snap.val().message;
+                document.getElementById('ann-bar').classList.remove('hidden');
+            }
+        });
+    }
+
+    function loadAdminQR() {
+        db.ref('admin_settings/qr').on('value', snap => {
+            if (snap.exists()) document.getElementById('adm-qr-img').src = snap.val();
+        });
+    }
+
+    function openJoinModal(id, fee) {
+        activeMatchId = id; activeMatchFee = fee;
+        document.getElementById('reg-fee-info').innerText = "Joining Fee: " + fee + " Pts";
+        document.getElementById('reg-modal').classList.remove('hidden');
+    }
+
+    function confirmJoin() {
+        const name = document.getElementById('p-name').value;
+        const uid = document.getElementById('p-uid').value;
+        if(!name || !uid) return alert("Please fill your Game Name & UID!");
+        if(userPoints < activeMatchFee) return alert("Insufficient Balance!");
+
+        db.ref('users/' + auth.currentUser.uid + '/points').transaction(cp => {
+            if (cp >= activeMatchFee) return cp - activeMatchFee;
+        }).then(result => {
+            if(result.committed) {
+                db.ref('tournaments/' + activeMatchId + '/players').push({
+                    name, uid, email: auth.currentUser.email, status: 'approved', time: Date.now()
+                }).then(() => { 
+                    alert("Match Joined Successfully!"); 
+                    document.getElementById('reg-modal').classList.add('hidden'); 
+                });
+            } else {
+                alert("Transaction Failed. Check Balance.");
+            }
+        });
+    }
+
+    function submitDeposit() {
+        const amt = document.getElementById('dep-amt').value;
+        const file = document.getElementById('dep-file').files[0];
+        if(!amt || !file) return alert("Fill all fields!");
+        const reader = new FileReader(); 
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            db.ref('deposit_requests').push({
+                uid: auth.currentUser.uid, email: auth.currentUser.email,
+                amount: parseInt(amt), screenshot: reader.result, status: 'pending', time: Date.now()
+            }).then(() => { 
+                alert("Deposit Request Sent!"); 
+                document.getElementById('deposit-modal').classList.add('hidden'); 
+            });
+        };
+    }
+
+    function submitWithdraw() {
+        const amt = parseInt(document.getElementById('wit-amt').value);
+        const file = document.getElementById('wit-file').files[0];
+        if(!amt || !file || amt < 100) return alert("Min withdrawal 100 & QR required!");
+        if(amt > userPoints) return alert("Low balance!");
+        
+        db.ref('users/' + auth.currentUser.uid + '/points').transaction(cp => (cp || 0) - amt).then(res => {
+            if(res.committed) {
+                const reader = new FileReader(); 
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    db.ref('withdraw_requests').push({
+                        uid: auth.currentUser.uid, email: auth.currentUser.email,
+                        amount: amt, scanner: reader.result, status: 'pending', time: Date.now()
+                    }).then(() => { 
+                        alert("Withdrawal Request Sent!"); 
+                        document.getElementById('withdraw-modal').classList.add('hidden'); 
+                    });
+                };
+            }
+        });
+    }
+</script>
+</body>
+</html>

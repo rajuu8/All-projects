@@ -2,22 +2,450 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FF Admin - Lone Wolf Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;500;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #050810; }
+        .font-game { font-family: 'Orbitron', sans-serif; }
+        .neon-border { border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .nav-active { color: #3b82f6; text-shadow: 0 0 10px rgba(59, 130, 246, 0.8); }
+        input, select { background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body>
-    <main>
-        <section class="hero">
-            <div class="card">
-                <div class="bottom">
-                        <h1>Natural</h1>
-                        <i class="fa-solid fa-heart"></i>
+<body class="text-gray-200">
+
+<div id="login-box" class="fixed inset-0 bg-[#050810] z-[9999] flex items-center justify-center p-6">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 bg-blue-600 rounded-3xl mx-auto mb-4 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+                <i class="fa fa-shield-halved text-3xl text-white"></i>
+            </div>
+            <h1 class="font-game text-2xl font-bold tracking-widest text-white">MASTER <span class="text-blue-500">CORE</span></h1>
+            <p class="text-gray-500 text-[10px] mt-2 uppercase tracking-[0.4em]">Tournament Authority</p>
+        </div>
+        <div class="glass-card p-8 rounded-[2.5rem] space-y-4 border-white/5">
+            <input type="text" id="adm-id" placeholder="Admin Identity" class="w-full p-4 rounded-2xl outline-none focus:border-blue-500 transition">
+            <input type="password" id="adm-pass" placeholder="Secret Key" class="w-full p-4 rounded-2xl outline-none focus:border-blue-500 transition">
+            <button onclick="adminAuth()" class="w-full py-4 bg-blue-600 rounded-2xl font-game font-bold text-sm tracking-widest hover:bg-blue-700 transition active:scale-95 shadow-lg shadow-blue-500/30">INITIALIZE</button>
+        </div>
+    </div>
+</div>
+
+<div id="admin-content" class="hidden min-h-screen pb-24">
+    <div class="p-6 flex justify-between items-center sticky top-0 bg-[#050810]/80 backdrop-blur-lg z-50">
+        <div>
+            <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Dashboard</p>
+            <h2 id="page-title" class="font-game text-lg">OVERVIEW</h2>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="openAnn()" class="w-10 h-10 glass-card rounded-full flex items-center justify-center text-purple-400"><i class="fa fa-bullhorn"></i></button>
+            <button onclick="location.reload()" class="w-10 h-10 glass-card rounded-full flex items-center justify-center text-red-500"><i class="fa fa-power-off"></i></button>
+        </div>
+    </div>
+
+    <div class="px-4">
+        <div id="tab-home" class="tab-content block">
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="glass-card p-5 rounded-[2rem] neon-border">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Active Tourneys</p>
+                    <h3 id="stat-matches" class="text-2xl font-game mt-1">0</h3>
+                </div>
+                <div class="glass-card p-5 rounded-[2rem]">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Requests</p>
+                    <h3 id="stat-reqs" class="text-2xl font-game mt-1 text-yellow-500">0</h3>
                 </div>
             </div>
-        </section>
-    </main>
+            <h4 class="font-game text-[10px] mb-4 text-blue-400 tracking-tighter italic">Pending Deposits</h4>
+            <div id="deposit-list" class="space-y-4"></div>
+        </div>
+
+        <div id="tab-matches" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h4 class="font-game text-sm">MANAGE MATCHES</h4>
+                <button onclick="openModal()" class="bg-blue-600 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-blue-500/20">+ Create</button>
+            </div>
+            <div id="match-list" class="space-y-4"></div>
+        </div>
+
+        <div id="tab-withdraw" class="tab-content">
+            <h4 class="font-game text-sm mb-6">WITHDRAWAL QUEUE</h4>
+            <div id="withdraw-list" class="space-y-4"></div>
+        </div>
+
+        <div id="tab-settings" class="tab-content">
+            <h4 class="font-game text-sm mb-6">SYSTEM SETTINGS</h4>
+            <div class="glass-card p-6 rounded-[2rem] space-y-6">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Payment QR Code</label>
+                    <input type="file" id="adm-qr-input" class="w-full text-xs text-gray-400 file:bg-blue-600 file:border-0 file:rounded-lg file:px-4 file:py-2 file:text-white mb-4">
+                    <button onclick="updateAdminQR()" id="qr-up-btn" class="w-full py-3 bg-blue-600/10 border border-blue-500/30 rounded-xl text-blue-500 font-bold text-[10px] uppercase">Update QR System</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0A0F1E]/90 backdrop-blur-2xl border-t border-white/5 px-6 py-3 flex justify-between items-center z-[100]">
+        <button onclick="switchTab('home', this)" class="flex flex-col items-center gap-1 nav-active transition-all">
+            <i class="fa fa-th-large text-xl"></i>
+            <span class="text-[8px] font-bold uppercase">Home</span>
+        </button>
+        <button onclick="switchTab('matches', this)" class="flex flex-col items-center gap-1 text-gray-500 transition-all">
+            <i class="fa fa-gamepad text-xl"></i>
+            <span class="text-[8px] font-bold uppercase">Matches</span>
+        </button>
+        <button onclick="switchTab('withdraw', this)" class="flex flex-col items-center gap-1 text-gray-500 transition-all">
+            <i class="fa fa-receipt text-xl"></i>
+            <span class="text-[8px] font-bold uppercase">Payouts</span>
+        </button>
+        <button onclick="switchTab('settings', this)" class="flex flex-col items-center gap-1 text-gray-500 transition-all">
+            <i class="fa fa-sliders text-xl"></i>
+            <span class="text-[8px] font-bold uppercase">Config</span>
+        </button>
+    </nav>
+</div>
+
+<div id="m-modal" class="fixed inset-0 bg-black/95 hidden z-[999] overflow-y-auto p-4 flex items-center justify-center">
+    <div class="w-full max-w-lg glass-card p-6 rounded-[3rem] border-white/10">
+        <h3 id="modal-title" class="font-game text-center text-blue-500 mb-8 tracking-widest">EDITOR</h3>
+        <input type="hidden" id="m-edit-id">
+        <div class="grid grid-cols-1 gap-4">
+            <input id="m-name" placeholder="Tournament Name" class="p-4 rounded-2xl outline-none">
+            <input id="m-img" placeholder="Poster Image URL" class="p-4 rounded-2xl outline-none">
+            <div class="grid grid-cols-2 gap-4">
+                <input id="m-prize" placeholder="Prize Pool" class="p-4 rounded-2xl outline-none">
+                <input id="m-fee" placeholder="Entry Fee" class="p-4 rounded-2xl outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <input id="m-slots" type="number" placeholder="Slots (e.g. 48 or 2)" class="p-4 rounded-2xl outline-none">
+                <input id="m-per-kill" type="number" placeholder="Per Kill Reward" class="p-4 rounded-2xl outline-none text-green-500">
+            </div>
+            <input id="m-time" type="datetime-local" class="p-4 rounded-2xl outline-none text-blue-400">
+            <div class="grid grid-cols-2 gap-4">
+                <select id="m-type" class="p-4 rounded-2xl outline-none">
+                    <option value="SOLO">SOLO</option><option value="DUO">DUO</option><option value="SQUAD">SQUAD</option><option value="LONE WOLF">LONE WOLF</option>
+                </select>
+                <select id="m-map" class="p-4 rounded-2xl outline-none">
+                    <option value="Bermuda">Bermuda</option><option value="Purgatory">Purgatory</option><option value="Iron Cage">Iron Cage</option><option value="Nexterra">Nexterra</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <input id="m-room-id" placeholder="Room ID" class="p-4 rounded-2xl outline-none font-bold">
+                <input id="m-room-pass" placeholder="Password" class="p-4 rounded-2xl outline-none font-bold">
+            </div>
+            <select id="m-status" class="p-4 rounded-2xl outline-none text-yellow-500 font-bold uppercase">
+                <option value="upcoming">Upcoming</option><option value="live">Live</option><option value="completed">Completed</option>
+            </select>
+        </div>
+        <div class="flex gap-4 mt-8">
+            <button onclick="saveMatch()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-game text-[10px] tracking-[0.2em]">SAVE</button>
+            <button onclick="closeModal()" class="flex-1 py-4 bg-white/5 rounded-2xl font-game text-[10px] tracking-[0.2em]">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<div id="kill-modal" class="fixed inset-0 bg-black/98 hidden z-[1100] flex flex-col">
+    <div class="p-8 flex justify-between items-center border-b border-white/5">
+        <div>
+            <h3 class="font-game text-lg text-green-500">KILL MANAGEMENT</h3>
+            <p id="kill-match-title" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Match Name</p>
+        </div>
+        <button onclick="document.getElementById('kill-modal').classList.add('hidden')" class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-red-500"><i class="fa fa-times"></i></button>
+    </div>
+    <div id="kill-list-content" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+</div>
+
+<div id="player-modal" class="fixed inset-0 bg-black/98 hidden z-[1000] flex flex-col">
+    <div class="p-8 flex justify-between items-center border-b border-white/5">
+        <div>
+            <h3 class="font-game text-lg text-blue-500">LOBBY</h3>
+            <p id="player-count-display" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">0 Players Joined</p>
+        </div>
+        <button onclick="document.getElementById('player-modal').classList.add('hidden')" class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-red-500"><i class="fa fa-times"></i></button>
+    </div>
+    <div id="player-list-content" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkQMK4LJB7ihMID78Y1_30lTznWipo5pM",
+        authDomain: "tournament-782eb.firebaseapp.com",
+        projectId: "tournament-782eb",
+        storageBucket: "tournament-782eb.firebasestorage.app",
+        messagingSenderId: "772603896264",
+        appId: "1:772603896264:web:f400e841526c2ba961a0fd",
+        databaseURL: "https://tournament-782eb-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function switchTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.getElementById('tab-' + tabName).style.display = 'block';
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active', 'text-gray-500'));
+        btn.classList.add('nav-active');
+        document.getElementById('page-title').innerText = tabName.toUpperCase();
+    }
+
+    function adminAuth() {
+        const id = document.getElementById('adm-id').value;
+        const pass = document.getElementById('adm-pass').value;
+        db.ref('/').once('value', snap => {
+            const data = snap.val();
+            if (data && data.id == id && data.pass == pass) {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                loadAllData();
+            } else { alert("ACCESS DENIED"); }
+        });
+    }
+
+    function loadAllData() {
+        // --- 1. DEPOSITS LOGIC (FIXED) ---
+        db.ref('deposit_requests').on('value', snap => {
+            const list = document.getElementById('deposit-list');
+            list.innerHTML = "";
+            let pendingReqs = 0;
+            snap.forEach(child => {
+                const r = child.val();
+                if(r.status === 'pending') {
+                    pendingReqs++;
+                    list.innerHTML += `
+                    <div class="glass-card p-4 rounded-[2rem] flex flex-col gap-4 border-l-4 border-green-500">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-[9px] text-gray-500 font-bold uppercase">${r.email.split('@')[0]}</p>
+                                <p class="font-game text-xl text-white">₹ ${r.amount}</p>
+                            </div>
+                            <i class="fa fa-wallet text-green-500/20 text-3xl"></i>
+                        </div>
+                        <img src="${r.screenshot}" class="w-full h-40 object-cover rounded-3xl" onclick="window.open(this.src)">
+                        <div class="flex gap-2">
+                            <button onclick="approvePoints('${child.key}', '${r.uid}', ${r.amount})" class="flex-1 py-3 bg-green-600 rounded-2xl font-bold text-[10px] uppercase">Approve</button>
+                            <button onclick="rejectDeposit('${child.key}')" class="flex-1 py-3 bg-white/5 rounded-2xl font-bold text-[10px] uppercase text-red-500">Reject</button>
+                        </div>
+                    </div>`;
+                }
+            });
+            document.getElementById('stat-reqs').innerText = pendingReqs;
+        });
+
+        // --- 2. MATCHES ---
+        db.ref('tournaments').on('value', snap => {
+            document.getElementById('stat-matches').innerText = snap.numChildren();
+            const list = document.getElementById('match-list');
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const t = child.val();
+                const pCount = t.players ? Object.keys(t.players).length : 0;
+                list.innerHTML += `
+                <div class="glass-card p-4 rounded-[2rem] relative">
+                    <button onclick="deleteMatch('${child.key}')" class="absolute top-4 right-4 w-8 h-8 bg-red-600/20 text-red-500 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition">
+                        <i class="fa fa-trash-alt text-[10px]"></i>
+                    </button>
+                    <div class="flex gap-4 mb-4">
+                        <img src="${t.img}" class="w-20 h-20 rounded-2xl object-cover border border-white/5 shadow-xl">
+                        <div class="flex-1 overflow-hidden">
+                            <h3 class="font-game text-xs truncate mb-1 pr-8">${t.name}</h3>
+                            <p class="text-[9px] text-blue-400 font-bold uppercase tracking-widest">${t.type} • ${t.status}</p>
+                            <div class="flex items-center gap-2 mt-3">
+                                <div class="flex-1 h-1.5 bg-black rounded-full overflow-hidden">
+                                    <div class="bg-blue-600 h-full shadow-[0_0_10px_#3b82f6]" style="width: ${(pCount/t.slots)*100}%"></div>
+                                </div>
+                                <span class="text-[10px] font-game">${pCount}/${t.slots}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="editMatch('${child.key}')" class="py-3 bg-white/5 rounded-xl text-[9px] font-bold uppercase"><i class="fa fa-edit"></i></button>
+                        <button onclick="viewPlayers('${child.key}')" class="py-3 bg-white/5 rounded-xl text-[9px] font-bold uppercase"><i class="fa fa-users"></i></button>
+                        <button onclick="openKillManager('${child.key}', '${t.name}', ${t.perKill || 0})" class="py-3 bg-green-600/10 text-green-500 border border-green-500/20 rounded-xl text-[9px] font-bold uppercase"><i class="fa fa-skull"></i></button>
+                        <button onclick="uploadResult('${child.key}')" class="py-3 bg-yellow-600/10 text-yellow-500 border border-yellow-500/20 rounded-xl text-[9px] font-bold uppercase"><i class="fa fa-trophy"></i></button>
+                    </div>
+                </div>`;
+            });
+        });
+
+        // --- 3. WITHDRAWALS (FIXED) ---
+        db.ref('withdraw_requests').on('value', snap => {
+            const list = document.getElementById('withdraw-list');
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const w = child.val();
+                if(w.status === 'pending') {
+                    list.innerHTML += `
+                    <div class="glass-card p-5 rounded-[2rem] border-l-4 border-red-500">
+                        <div class="flex justify-between items-start mb-4">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase truncate max-w-[150px]">${w.email}</p>
+                            <p class="font-game text-red-500">₹ ${w.amount}</p>
+                        </div>
+                        <img src="${w.scanner}" class="w-full h-40 object-contain bg-white rounded-2xl mb-4 p-2 shadow-inner" onclick="window.open(this.src)">
+                        <div class="flex gap-2">
+                            <button onclick="completeWithdraw('${child.key}', '${w.uid}', ${w.amount})" class="flex-1 py-3 bg-blue-600 rounded-2xl font-bold text-[10px] uppercase">Paid</button>
+                            <button onclick="rejectWithdraw('${child.key}', '${w.uid}', ${w.amount})" class="flex-1 py-3 bg-white/5 rounded-2xl font-bold text-[10px] uppercase text-red-400">Reject</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        });
+    }
+
+    function approvePoints(reqId, userId, amount) {
+        db.ref('users/' + userId + '/points').transaction(c => (c || 0) + amount)
+        .then(() => {
+            db.ref('deposit_requests/' + reqId).update({ status: 'approved' });
+            logTransaction(userId, 'Credit', amount, 'Deposit Approved');
+            alert("Points Approved!");
+        });
+    }
+
+    function rejectDeposit(reqId) {
+        const reason = prompt("Rejection Reason:");
+        if (reason) db.ref('deposit_requests/' + reqId).update({ status: 'cancelled', reason: reason }).then(() => alert("Rejected"));
+    }
+
+    function completeWithdraw(reqId, userId, amount) {
+        db.ref('withdraw_requests/' + reqId).update({ status: 'approved' })
+        .then(() => {
+            logTransaction(userId, 'Debit', amount, 'Withdrawal Successful');
+            alert("Marked as Paid!");
+        });
+    }
+
+    function rejectWithdraw(reqId, userId, amount) {
+        const reason = prompt("Rejection Reason:");
+        if (reason) {
+            db.ref('users/' + userId + '/points').transaction(cp => (cp || 0) + amount).then(() => {
+                db.ref('withdraw_requests/' + reqId).update({ status: 'cancelled', reason: reason });
+                logTransaction(userId, 'Credit', amount, 'Withdrawal Rejected: ' + reason);
+                alert("Refunded & Rejected");
+            });
+        }
+    }
+
+    function logTransaction(uid, type, amount, msg) {
+        db.ref('transactions/' + uid).push({ type, amount, msg, date: Date.now() });
+    }
+
+    function saveMatch() {
+        const id = document.getElementById('m-edit-id').value;
+        const matchData = {
+            name: document.getElementById('m-name').value,
+            img: document.getElementById('m-img').value,
+            prize: document.getElementById('m-prize').value,
+            fee: document.getElementById('m-fee').value,
+            slots: parseInt(document.getElementById('m-slots').value) || 48,
+            perKill: parseInt(document.getElementById('m-per-kill').value) || 0,
+            time: document.getElementById('m-time').value,
+            type: document.getElementById('m-type').value,
+            map: document.getElementById('m-map').value,
+            status: document.getElementById('m-status').value,
+            roomId: document.getElementById('m-room-id').value,
+            roomPass: document.getElementById('m-room-pass').value,
+            lastUpdated: Date.now()
+        };
+        if (id) db.ref('tournaments/' + id).update(matchData).then(() => { alert("Updated!"); closeModal(); });
+        else db.ref('tournaments').push(matchData).then(() => { alert("Created!"); closeModal(); });
+    }
+
+    function editMatch(id) {
+        db.ref('tournaments/' + id).once('value', snap => {
+            const t = snap.val();
+            document.getElementById('m-edit-id').value = id;
+            document.getElementById('m-name').value = t.name;
+            document.getElementById('m-img').value = t.img;
+            document.getElementById('m-prize').value = t.prize;
+            document.getElementById('m-fee').value = t.fee;
+            document.getElementById('m-slots').value = t.slots;
+            document.getElementById('m-per-kill').value = t.perKill;
+            document.getElementById('m-time').value = t.time;
+            document.getElementById('m-type').value = t.type;
+            document.getElementById('m-map').value = t.map;
+            document.getElementById('m-status').value = t.status;
+            document.getElementById('m-room-id').value = t.roomId || "";
+            document.getElementById('m-room-pass').value = t.roomPass || "";
+            document.getElementById('m-modal').classList.remove('hidden');
+        });
+    }
+
+    function openModal() {
+        document.getElementById('m-edit-id').value = "";
+        document.getElementById('m-modal').classList.remove('hidden');
+    }
+    function closeModal() { document.getElementById('m-modal').classList.add('hidden'); }
+    
+    function deleteMatch(id) {
+        if(confirm("Delete?")) db.ref('tournaments/' + id).remove();
+    }
+
+    function openKillManager(matchId, matchName, perKill) {
+        const content = document.getElementById('kill-list-content');
+        document.getElementById('kill-match-title').innerText = matchName;
+        document.getElementById('kill-modal').classList.remove('hidden');
+        db.ref('tournaments/' + matchId + '/players').once('value', snap => {
+            content.innerHTML = "";
+            snap.forEach(child => {
+                const p = child.val();
+                content.innerHTML += `
+                <div class="glass-card p-4 rounded-2xl flex justify-between items-center">
+                    <div><p class="font-bold">${p.name}</p><p class="text-[8px] opacity-50">${p.uid}</p></div>
+                    <div class="flex gap-2">
+                        <input type="number" id="k-in-${child.key}" placeholder="Kills" class="w-16 p-2 rounded bg-black/50 text-xs">
+                        <button onclick="updateKills('${matchId}', '${child.key}', '${p.uid}', ${perKill})" class="bg-blue-600 px-3 py-1 rounded text-[10px]">Pay</button>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function updateKills(mId, pKey, uId, pk) {
+        const k = document.getElementById('k-in-' + pKey).value;
+        const win = k * pk;
+        db.ref('tournaments/'+mId+'/players/'+pKey).update({kills:k, winnings:win}).then(() => {
+            db.ref('users/'+uId+'/points').transaction(c => (c||0)+win);
+            logTransaction(uId, 'Credit', win, 'Match Kills');
+            alert("Paid!");
+        });
+    }
+
+    function openAnn() {
+        const msg = prompt("Notification:");
+        if(msg) db.ref('announcements').set({message: msg, time: Date.now()});
+    }
+
+    function updateAdminQR() {
+        const file = document.getElementById('adm-qr-input').files[0];
+        const reader = new FileReader();
+        reader.onload = () => db.ref('admin_settings/qr').set(reader.result).then(() => alert("QR Updated"));
+        if(file) reader.readAsDataURL(file);
+    }
+
+    function viewPlayers(id) {
+        const content = document.getElementById('player-list-content');
+        document.getElementById('player-modal').classList.remove('hidden');
+        db.ref('tournaments/' + id + '/players').once('value', snap => {
+            content.innerHTML = "";
+            document.getElementById('player-count-display').innerText = snap.numChildren() + " Joined";
+            snap.forEach(child => {
+                const p = child.val();
+                content.innerHTML += `<div class="glass-card p-4 rounded-2xl flex justify-between"><span>${p.name}</span><span class="text-yellow-500">${p.uid}</span></div>`;
+            });
+        });
+    }
+
+    function uploadResult(id) {
+        const winner = prompt("Winner:");
+        const ss = prompt("SS Link:");
+        if(winner && ss) db.ref('results/' + id).set({ winner, img: ss, time: Date.now() }).then(() => alert("Posted"));
+    }
+</script>
 </body>
 </html>
